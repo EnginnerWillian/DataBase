@@ -1,0 +1,4 @@
+SELECT * FROM  DEPARTAMENTO
+WHERE ID_REGIAO IN (SELECT ID_REGIAO
+                    FROM  REGIAO
+                    WHERE NOME = 'NORTE')
