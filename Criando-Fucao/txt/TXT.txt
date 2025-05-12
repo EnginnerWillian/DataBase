@@ -1,0 +1,40 @@
+Funções em T-SQL são rotinas que retornam valores ou tabelas. Com elas você poderá construir visões parametrizadas ou ainda construir suas próprias funções, semelhantes a DATE(), STUFF(), LTrim() dentre outras. Existem três tipos de funções possíveis. Segue-se um caso de uso prático para cada uma delas:
+Exemplos:
+1. Deseja-se retirar todos os espaços em branco de uma string qualquer.Vamos elaborar uma função para retirar todos os espaços em branco de uma string qualquer com tamanho máximo de 1000 caracteres. Usaremos a função built-in (função interna do sql server) ltrim() que retira os espaços em branco do lado esquerdo e rtrim() que retira os espaços em branco da direita.
+    * Tipo de função: Scalar-valued user-defined functionCREATE FUNCTION TRIM(@ST VARCHAR(1000))
+    * RETURNS VARCHAR(1000)
+    * BEGIN
+    *    RETURN(LTRIM(RTRIM(@ST)))
+    * END
+    * Invocando uma Scalar-valued user-defined functionSELECT '<' + DBO.TRIM(' WELLYNGTON MOREIRA ')+'>' 
+    * Resultado obtido
+￼
+    * Considerações importantes: A função criada é de domínio do database ao qual ela foi criada, assim sendo, para invocá-la de outro database se faz necessário o uso da assinatura completa da função:SELECT []..([parametros-opcioanais]...)  
+1. Deseja-se uma tabela com os registros de todos os tempos possíveis em intervalos de minutos parametrizáveis entre duas datas quaisquer.Como o problema requer o retorno de datas em intervalos de minutos, vamos criar uma tabela em nossa função com um campo do tipo DATETIME, utilizando a função built-in (função interna do SQL Server) DATEADD() para incrementar uma data inicial até a data final desejada em intervalos de minutos = MINUTE.
+    * Tipo de função: Multi-statement table-valued function
+        * CREATE FUNCTION DtsMinutos(@min int, @dti datetime, @dtf datetime)
+    * RETURNS @tbl TABLE(dt datetime)
+    * AS
+    * BEGIN
+    *     WHILE @dti <= @dtf
+    *     BEGIN
+    *       INSERT INTO @tbl(dt) VALUES (@dti)
+    *       SET @dti = DATEADD(MINUTE,@min,@dti)
+    *     END
+    *     RETURN
+    * END  
+    * Invocando uma Multi-statement table-valued functionSELECT *
+    * FROM   DtsMinutos(12,'2011-01-01 12:00','2011-01-01 17:00')  
+    * Resultado obtido
+￼
+1. Deseja-se uma tabela com os FUNCIONÁRIOS contratados após uma data específica.Para este problema vamos supor uma tabela povoada com três atributos: A matrícula do tipo int, o nome do tipo varchar(80) e dataContratacao do tipo dateTime com a data que o funcionário foi contratado.
+    * Tipo de função: Inline table-valued function
+    * CREATE FUNCTION funcionariosApos(@dt datetime)
+    * RETURNS TABLE
+    * AS
+    * RETURN (SELECT *
+    *         FROM  FUNCIONARIO
+    *         WHERE dataContratacao >= @dt)    
+    * Invocando uma Multi-statement table-valued function
+    * SELECT * FROM funcionariosApos('2000-01-01')     
+    * Resultado obtido
